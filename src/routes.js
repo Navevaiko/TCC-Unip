@@ -1,9 +1,10 @@
 const express = require('express');
-const UserController = require('./controllers/User');
-
+const QuestionController = require('./controllers/QuestionControllers');
 const routes = express.Router();
 
-routes.post('/user', UserController.createNewUser);
-routes.post('/login', UserController.login);
+routes.post('/questions', QuestionController.create);
+routes.get('/questions', QuestionController.getAll);
+routes.delete('/questions/:id', QuestionController.delete);
+routes.put('/questions/:id', QuestionController.edit);
 
 module.exports = routes;
