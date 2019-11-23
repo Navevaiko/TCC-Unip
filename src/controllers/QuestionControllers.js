@@ -1,4 +1,4 @@
-const firebaseApp = require('firebase');
+const firebaseApp = require('../config/firebase_config');
 const uuid = require('uuid');
 require('firebase/firestore');
 
