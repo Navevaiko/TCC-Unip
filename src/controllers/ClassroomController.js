@@ -2,6 +2,9 @@ const firebaseApp = require('../config/firebase_config');
 const uuid = require('uuid');
 require('firebase/firestore');
 
+const firestore = firebaseApp.firestore();
+const collectionName = 'Classrooms';
+
 module.exports = {
     async create(req, res) {
         try {
@@ -10,9 +13,10 @@ module.exports = {
                 period
             } = req.body;
 
-            const docReference = await firebaseApp.firestore().collection('Classrooms').doc(uuid());
+            const docReference = await firestore.collection(collectionName).doc(uuid());
 
             await docReference.set({ name, period });
+            
             res.json({ sucesso: true, mensagem: 'Sala criada com sucesso' });
         } catch (error) {
             console.log(error);
@@ -25,7 +29,7 @@ module.exports = {
         try {
             let classrooms = [];
 
-            const classroomsDocs = await firebaseApp.firestore().collection('Classrooms').get();
+            const classroomsDocs = await firestore.collection(collectionName).get();
 
             classroomsDocs.forEach(doc => {
                 classrooms.push({ id: doc.id, data: doc.data() });
@@ -43,7 +47,7 @@ module.exports = {
         try {
             const { id } = req.params;
 
-            await firebaseApp.firestore().collection('Classrooms').doc(id).delete();
+            await firestore.collection(collectionName).doc(id).delete();
 
             res.json({ sucesso: true, mensagem: 'Sala deletada com sucesso' });
         } catch (error) {
@@ -64,7 +68,7 @@ module.exports = {
                 dataToUpdate[key] = body[key];
             }
             
-            await firebaseApp.firestore().collection('Classrooms').doc(id).update(dataToUpdate);
+            await firestore.collection(collectionName).doc(id).update(dataToUpdate);
 
             res.json({ sucesso: true, mensagem: 'Sala editada com sucesso' });
         } catch (error) {

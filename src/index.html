@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+</head>
+
+<body>
+    <span> Current Team: <span id='currTeam'></span> </span> <br>
+    <span> Your Team: <span id='yourTeam'></span> </span>
+
+    <form>
+        <input type="number" name="pinCode" id="pinCode">
+        <button type="submit" id='verificarPin'> Verificar </button>
+    </form>
+
+    <div id="questions" style="display: none;">
+        <span id="question"></span>
+        <ul id="alternatives">
+        </ul>
+        <button id='verificar'> Verificar </button>
+    </div>
+
+    <script>
+        var socket = io('localhost:3001');
+
+        socket.on('checkPinCode', function(data) {
+            if(data.isOk) {
+                var yourTeam = data.team;
+                $('#yourTeam').text(yourTeam);
+            }
+        });
+
+        // socket.emit('sendQuestion', { team: yourTeam });
+
+        socket.on('question', function(data) {
+            $('#question').text(data.question);
+            $("#alternatives").html('');
+
+            data.alternatives.forEach(element => {
+                $('#alternatives').append('<li> <input type="radio" name="el" value="'+element+'"> ' + element + ' </li>')
+            });
+
+            $("#questions").fadeIn();
+        });
+
+        $('#verificar').click(function(event) {
+            event.preventDefault();
+
+            var resposta = '';
+            
+            $('input[type="radio"]').each(function() {
+                if($(this).prop('checked')) resposta = $(this).val();
+            });
+        });
+
+        $('form').on('submit', function(event) {
+            event.preventDefault();
+
+            var pinCode = $("#pinCode").val();
+
+            socket.emit('checkPinCode', { code: pinCode });
+        });
+    </script>
+</body>
+
+</html>
