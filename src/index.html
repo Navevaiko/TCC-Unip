@@ -29,15 +29,20 @@
 
     <script>
         var socket = io('localhost:3001');
-
+        $.ajax({
+            url: 'https://tcc-unip.herokuapp.com/classrooms'
+        }).done(function(res) {
+            console.log(res);
+        })
         socket.on('checkPinCode', function(data) {
             if(data.isOk) {
                 var yourTeam = data.team;
                 $('#yourTeam').text(yourTeam);
+                socket.emit('sendQuestion', { team: yourTeam });
             }
         });
 
-        // socket.emit('sendQuestion', { team: yourTeam });
+        
 
         socket.on('question', function(data) {
             $('#question').text(data.question);
