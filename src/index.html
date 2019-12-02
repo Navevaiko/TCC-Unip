@@ -20,6 +20,8 @@
         <button type="submit" id='verificarPin'> Verificar </button>
     </form>
 
+    <button id='startGame'> Iniciar jogo </button>
+
     <div id="questions" style="display: none;">
         <span id="question"></span>
         <ul id="alternatives">
@@ -29,40 +31,84 @@
 
     <script>
         var socket = io('localhost:3001');
-        $.ajax({
-            url: 'https://tcc-unip.herokuapp.com/classrooms'
-        }).done(function(res) {
-            console.log(res);
-        })
+        var currTeam = 'A';
+        var yourTeam = '';
+
+        // SOCKET
         socket.on('checkPinCode', function(data) {
             if(data.isOk) {
-                var yourTeam = data.team;
+                yourTeam = data.team;
                 $('#yourTeam').text(yourTeam);
-                socket.emit('sendQuestion', { team: yourTeam });
+            }else{
+                alert('Team already logged');
+            }
+        });
+        
+        socket.on('setCurrentTeam', function(data) {
+            currTeam = data.team;
+            $('#currTeam').text(currTeam);
+            
+            $("#questions").fadeOut();
+            
+            if(currTeam == yourTeam) socket.emit('sendQuestion');
+        });
+
+        socket.on('startGame', function(data) {
+            if(data.started) {
+                currTeam = data.team;
+    
+                $('#startGame').prop('disabled', true);
+                $("#currTeam").text(currTeam);
+    
+                if(currTeam == yourTeam) socket.emit('sendQuestion');
+            }else{
+                alert('Aguarde o outro time logar');
             }
         });
 
-        
-
         socket.on('question', function(data) {
-            $('#question').text(data.question);
-            $("#alternatives").html('');
+            if(data.currTeam == yourTeam) {
+                if(data.question) {
+                    $("#question").attr('data-questionId', data.question.id);
+                    $('#question').text(data.question.question);
+                    $("#alternatives").html('');
+    
+                    data.question.alternatives.forEach(element => {
+                        $('#alternatives').append('<li> <input type="radio" name="el" value="'+element+'"> ' + element + ' </li>')
+                    });
+    
+                    $("#questions").fadeIn();
+                }else{
+                    alert('Todas perguntas respondidas');
+                }
+            }
+        });
 
-            data.alternatives.forEach(element => {
-                $('#alternatives').append('<li> <input type="radio" name="el" value="'+element+'"> ' + element + ' </li>')
-            });
+        socket.on('gameOver', function(winner) {
+            if(winner.toLowerCase() == 'tie') {
+                alert('It\'s a tie');
+            }else{
+                alert('The winner is ' + winner);
+            }
+        });
 
-            $("#questions").fadeIn();
+        // BUTTONS
+        $('#startGame').click(function(e){
+            e.preventDefault();
+            
+            socket.emit('startGame', { team: currTeam });
         });
 
         $('#verificar').click(function(event) {
             event.preventDefault();
-
+            var questionId = $("#question").attr('data-questionId');
             var resposta = '';
             
             $('input[type="radio"]').each(function() {
                 if($(this).prop('checked')) resposta = $(this).val();
             });
+            
+            socket.emit('verifyQuestion', { answer: resposta, questionId: questionId });
         });
 
         $('form').on('submit', function(event) {
