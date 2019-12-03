@@ -3,7 +3,6 @@ const cors = require('cors');
 const routes = require('./routes');
 const dotenv = require('dotenv');
 const socketController = require('./controllers/SocketController');
-
 dotenv.config();
 
 const app = express();
@@ -20,6 +19,6 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html')
 });
 
-socketController.createSocket();
+socketController.createSocket('cf228ac8-1791-4f8e-92fa-52928c169147')
 
 module.exports = app;

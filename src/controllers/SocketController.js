@@ -1,7 +1,7 @@
 const app = require('../server');
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-const QuestionController = require('../controllers/QuestionControllers');
+const GameController = require('../controllers/GameController');
 
 const teams = [
     { code: 123, name: 'A', logged: false, answeredQuestions: [] }, 
@@ -17,23 +17,22 @@ const questions = [
 let currTeam = '';
 
 module.exports = {
-    createSocket() {
-        io.on('connection', socket => {
-            socket.on('checkPinCode', data => {
-                const team = teams.find(team => team.code == data.code);
+    createSocket(id) {
+        const game = io.of('/' + id).on('connection', socket => {
+            socket.on('checkPinCode', async data => {
+                const result = await GameController.checkPinCode(id, data.code);
                 
-                if(team) {
-                    if(!team.logged) socket.emit('checkPinCode', { isOk: true, team: team.name });
-                    else socket.emit('checkPinCode', { isOk: false, team: team.name });
-                    
-                    teams.map(data => { if(data.code == team.code) team.logged = true });
+                if(result.success) {
+                    socket.emit('checkPinCode', { isOk: true, team: result.teamName });                    
+                }else{
+                    socket.emit('checkPinCode', { isOk: false, team: '' });
                 }
             });
 
-            socket.on('startGame', data => {
-                if(teams.filter(team => team.logged).length == teams.length) {
+            socket.on('startGame', async data => {
+                if(await GameController.areBothTeamsLogged(id)) {
                     currTeam = data.team;
-                    io.sockets.emit('startGame', { started: true, team: currTeam });
+                    game.emit('startGame', { started: true, team: currTeam });
                 }else{
                     socket.emit('startGame', { started: false });
                 }
@@ -90,6 +89,7 @@ module.exports = {
             });
         });
         
-        server.listen(process.env.SOCKET_PORT);        
+        server.listen(process.env.SOCKET_PORT);
+        return process.env.SOCKET_URL + ':' + process.env.SOCKET_PORT + '/' + id;     
     }
 };
