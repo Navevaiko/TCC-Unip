@@ -30,7 +30,7 @@
     </div>
 
     <script>
-        var socket = io('localhost:3001/cf228ac8-1791-4f8e-92fa-52928c169147');
+        var socket = io('localhost:3001/100bc8f2-676e-4fa7-88fd-994f7f55c2e9');
         var currTeam = 'Team A';
         var yourTeam = '';
 
@@ -45,6 +45,7 @@
         });
         
         socket.on('setCurrentTeam', function(data) {
+            console.log(data);
             currTeam = data.team;
             $('#currTeam').text(currTeam);
             
@@ -67,13 +68,16 @@
         });
 
         socket.on('question', function(data) {
-            if(data.currTeam == yourTeam) {
-                if(data.question) {
-                    $("#question").attr('data-questionId', data.question.id);
-                    $('#question').text(data.question.question);
+            var team = data.currTeam;
+            var question = data.question;
+
+            if(team == yourTeam) {
+                if(question) {
+                    $("#question").attr('data-questionId', question.id);
+                    $('#question').text(question.data.question);
                     $("#alternatives").html('');
     
-                    data.question.alternatives.forEach(element => {
+                    question.data.answers.forEach(element => {
                         $('#alternatives').append('<li> <input type="radio" name="el" value="'+element+'"> ' + element + ' </li>')
                     });
     
