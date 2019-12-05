@@ -1,8 +1,4 @@
-const app = require('../server');
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
 const GameController = require('./StartedGameController');
-
 let currTeam = '';
 
 module.exports = {
@@ -75,7 +71,6 @@ module.exports = {
             });
         });
         
-        server.listen(process.env.SOCKET_PORT);
-        return process.env.SOCKET_URL + ':' + process.env.SOCKET_PORT + '/' + id;     
+        return process.env.SOCKET_URL + '/' + id;     
     }
 };

@@ -5,6 +5,8 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
+const server = require('http').createServer(app);
+global.io = require('socket.io')(server);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -12,10 +14,4 @@ app.use(express.json());
 app.use(cors());
 app.use(routes);
 
-app.listen(process.env.PORT);
-
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html')
-});
-
-module.exports = app;
+server.listen(process.env.PORT);
