@@ -1,4 +1,5 @@
 const GameController = require('./StartedGameController');
+const QuestionController = require('./QuestionControllers');
 let currTeam = '';
 
 module.exports = {
@@ -28,7 +29,9 @@ module.exports = {
                 const unansweredQuestions = await GameController.getUnansweredQuestions(id, currTeam);
                 
                 const randomIndex = Math.ceil(Math.random() * unansweredQuestions.length - 1);
-                const question = unansweredQuestions[randomIndex];
+                const questionId = unansweredQuestions[randomIndex];
+                
+                const question = await QuestionController.getById(questionId);
                 
                 if(question) {
                     socket.emit('question', { question, currTeam });
@@ -48,8 +51,8 @@ module.exports = {
                 );
                 
                 const scores = await GameController.getScore(id);
-                console.log(scores);
-                game.emit('score', { scores });
+                
+                game.emit('score', { scores, currTeam });
 
                 const finishedTeams = await GameController.getFinishedTeams(id);
                 const teams = await GameController.getTeams(id);

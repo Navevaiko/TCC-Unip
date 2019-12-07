@@ -75,6 +75,16 @@ module.exports = {
             console.log(error);
             res.json({ sucesso: false, mensagem: 'Erro ao editar a sala' });
         }
-        
+    },
+
+    async getById(id) {
+        try {
+            const classroomData = await firestore.collection(collectionName).doc(id).get();
+
+            return { id: classroomData.id, data: classroomData.data() };
+        } catch (error) {
+            console.log(error);
+            return undefined;
+        }
     }
 }

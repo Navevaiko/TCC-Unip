@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+</head>
+
+<body>
+    <div id="score">
+    </div>
+
+    <form>    
+        <span> Current Team: <span id='currTeam'></span> </span> <br>
+        <span> Your Team: <span id='yourTeam'></span> </span>
+        
+        <input type="number" name="pinCode" id="pinCode">
+        <button type="submit" id='verificarPin'> Verificar </button>
+    </form>
+
+    <button id='startGame'> Iniciar jogo </button>
+
+    <div id="questions" style="display: none;">
+        <span id="question"></span>
+        <ul id="alternatives">
+        </ul>
+        <button id='verificar'> Verificar </button>
+    </div>
+
+    <script>
+        var socket = io('https://tcc-unip.herokuapp.com/d23d087e-57ef-4ae4-954f-3c621b705897');
+        var currTeam = 'Team A';
+        var yourTeam = '';
+        var isTeacher = new URL(window.location).searchParams.get('isTeacher');
+        
+        if(isTeacher == 'true') {
+            $("#score").fadeIn();
+
+            $('form').fadeOut();
+            $("#questions").fadeOut();
+            $("#startGame").fadeOut();
+            
+            socket.on('score', function(data){
+                $("#score").html('');
+                
+                data.scores.forEach(function(item) {
+                    $("#score").append('<b> ' + item.team + ' </b> tem ' + item.score);
+                    $("#score").append('<br>');
+                });
+                alert('Vez do time ', data.currTeam);
+            });
+        }else {
+            $("#score").fadeOut();
+        }
+
+        // SOCKET
+        socket.on('checkPinCode', function(data) {
+            if(data.isOk) {
+                yourTeam = data.team;
+                $('#yourTeam').text(yourTeam);
+            }else{
+                alert('Team already logged');
+            }
+        });
+        
+        socket.on('setCurrentTeam', function(data) {
+            console.log(data);
+            currTeam = data.team;
+            $('#currTeam').text(currTeam);
+            
+            $("#questions").fadeOut();
+            
+            if(currTeam == yourTeam) socket.emit('sendQuestion');
+        });
+
+        socket.on('startGame', function(data) {
+            if(data.started) {
+                currTeam = data.team;
+    
+                $('#startGame').prop('disabled', true);
+                $("#currTeam").text(currTeam);
+    
+                if(currTeam == yourTeam) socket.emit('sendQuestion');
+            }else{
+                alert('Aguarde o outro time logar');
+            }
+        });
+
+        socket.on('question', function(data) {
+            var team = data.currTeam;
+            var question = data.question;
+
+            if(team == yourTeam) {
+                if(question) {
+                    $("#question").attr('data-questionId', question.id);
+                    $('#question').text(question.data.question);
+                    $("#alternatives").html('');
+    
+                    question.data.answers.forEach(element => {
+                        $('#alternatives').append('<li> <input type="radio" name="el" value="'+element+'"> ' + element + ' </li>')
+                    });
+    
+                    $("#questions").fadeIn();
+                }else{
+                    alert('Todas perguntas respondidas');
+                }
+            }
+        });
+
+        socket.on('gameOver', function(winner) {
+            if(winner.toLowerCase() == 'tie') {
+                alert('It\'s a tie');
+            }else{
+                alert('The winner is ' + winner);
+            }
+        });
+
+        // BUTTONS
+        $('#startGame').click(function(e){
+            e.preventDefault();
+            
+            socket.emit('startGame', { team: currTeam });
+        });
+
+        $('#verificar').click(function(event) {
+            event.preventDefault();
+            var questionId = $("#question").attr('data-questionId');
+            var resposta = '';
+            
+            $('input[type="radio"]').each(function() {
+                if($(this).prop('checked')) resposta = $(this).val();
+            });
+            
+            socket.emit('verifyQuestion', { answer: resposta, questionId: questionId });
+        });
+
+        $('form').on('submit', function(event) {
+            event.preventDefault();
+
+            var pinCode = $("#pinCode").val();
+
+            socket.emit('checkPinCode', { code: pinCode });
+        });
+    </script>
+</body>
+
+</html>

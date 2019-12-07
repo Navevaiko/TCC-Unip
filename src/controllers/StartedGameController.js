@@ -48,10 +48,10 @@ module.exports = {
             
             const answeredQuestions = gameData.data().teams.find(team => team.teamName == teamName).answeredQuestions;
             
-            const unansweredQuestions = gameData.data().questions.filter(question =>
-                !answeredQuestions.find(item => item.questionId == question.id)
+            const unansweredQuestions = gameData.data().questions.filter(questionId =>
+                !answeredQuestions.find(item => item.questionId == questionId)
             );
-            
+
             return unansweredQuestions;
         } catch (error) {
             console.log(error);
@@ -62,8 +62,10 @@ module.exports = {
     async getCorrectAnswer(gameId, questionId) {
         try {
             const gameData = await firestore.collection(collectionName).doc(gameId).get();
+            const id  = gameData.data().questions.find(id => id == questionId);
             
-            const { data: { correct_answer } } = gameData.data().questions.find(question => question.id == questionId);
+            const questionData = await firestore.collection('Questions').doc(id).get();
+            const { correct_answer } = questionData.data();
             
             return correct_answer;
         } catch (error) {

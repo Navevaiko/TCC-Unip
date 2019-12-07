@@ -2,6 +2,9 @@ const firebaseApp = require('../config/firebase_config');
 const uuid = require('uuid');
 require('firebase/firestore');
 
+const firestore = firebaseApp.firestore();
+const collectionName = 'Questions';
+
 module.exports = {
     async create(req, res){
         try {
@@ -13,7 +16,7 @@ module.exports = {
                 theme
             } = req.body;
 
-            const docRef = await firebaseApp.firestore().collection('Questions').doc(uuid());
+            const docRef = await firestore.collection(collectionName).doc(uuid());
 
             await docRef.set({
                 question,
@@ -34,7 +37,7 @@ module.exports = {
         try {
             const { theme } = req.body;
 
-            const questionsDocs = await firebaseApp.firestore().collection('Questions').get();
+            const questionsDocs = await firestore.collection(collectionName).get();
             const questions = [];
 
             questionsDocs.forEach(doc => {
@@ -52,7 +55,7 @@ module.exports = {
         try {
             const { id } = req.params;
             
-            await firebaseApp.firestore().collection('Questions').doc(id).delete();
+            await firestore.collection(collectionName).doc(id).delete();
 
             res.json({ sucess: true, message: 'Pergunta deletada com sucesso' });
         } catch (error) {
@@ -71,12 +74,23 @@ module.exports = {
                 dataToUpdate[key] = body[key];
             };
 
-            await firebaseApp.firestore().collection('Questions').doc(id).update(dataToUpdate);
+            await firestore.collection(collectionName).doc(id).update(dataToUpdate);
 
             res.json({ sucess: true, message: 'Pergunta editada com sucesso' });
         } catch (error) {
             console.log(error);
             res.json({ sucess: false, message: 'Erro ao editar pergunta' });
         }
-    }
+    },
+
+    async getById(id) {
+        try {
+            const questionData = await firestore.collection(collectionName).doc(id).get();
+
+            return { id: questionData.id, data: questionData.data() };
+        } catch (error) {
+            console.log(error);
+            return undefined;
+        }
+    } 
 }
