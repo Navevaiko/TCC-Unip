@@ -64,8 +64,8 @@ module.exports = {
 
     async getAll(req, res) {
         try {
-            const { theme, classroomId } = req.body;
-
+            const { theme, classroomId } = req.query;
+            console.log(req);
             const gameData = await firestore.collection(collectionName).get();
             const games = [];
 
@@ -76,11 +76,13 @@ module.exports = {
             const fullGames = [];
             
             const promisses = games.map(async game => {
+
                 if(game.data.classroomId == classroomId && game.data.theme == theme) {
                     const classroom = await classroomController.getById(game.data.classroomId);
                     const questions = [];
-                    
+
                     const questionPromisse = game.data.questions.map(async questionId => {
+                        console.log(questionId);
                         questions.push(await questionController.getById(questionId));
                     });
 
