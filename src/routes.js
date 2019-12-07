@@ -2,6 +2,7 @@ const express = require('express');
 const QuestionController = require('./controllers/QuestionControllers');
 const ClassroomController = require('./controllers/ClassroomController');
 const GameController = require('./controllers/GameController');
+const TeacherController = require('./controllers/TeacherController');
 const routes = express.Router();
 
 // Rotas de perguntas
@@ -18,5 +19,9 @@ routes.put('/classrooms/:id', ClassroomController.edit);
 
 // Rotas dos jogos
 routes.post('/games', GameController.createGame);
+routes.get('/games', GameController.getAll);
+
+// Rota de login
+routes.post('/login', TeacherController.login)
 
 module.exports = routes;

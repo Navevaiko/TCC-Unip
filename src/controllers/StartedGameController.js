@@ -80,6 +80,7 @@ module.exports = {
             const changedTeam = gameData.data().teams.find(team => team.teamName == teamName);
             
             changedTeam.answeredQuestions.push(questionObj);
+            const score = changedTeam.answeredQuestions.filter(question => question.isCorrect).length;
 
             const updatedTeams = gameData.data().teams.map(team => { 
                 if(team.teamName == teamName) team = changedTeam;
@@ -87,8 +88,10 @@ module.exports = {
             });
 
             await gameDoc.update({ teams: updatedTeams });
+            return score * 10;
         } catch (error) {
             console.log(error);
+            return 0;
         }
     },
 
@@ -101,7 +104,7 @@ module.exports = {
             gameData.data().teams.forEach(team => {
                 if(team.answeredQuestions.length == gameData.data().questions.length) {
                     const correctAnswers = team.answeredQuestions.filter(question => question.isCorrect);
-                    finishedTeams.push({ team: team.teamName, score: correctAnswers.length });
+                    finishedTeams.push({ team: team.teamName, score: correctAnswers.length * 10 });
                 }
             });
             
@@ -128,6 +131,23 @@ module.exports = {
             await firestore.collection(collectionName).doc(gameId).update({ status: 'FINISHED', winner });
         }catch(error){
             console.log(error);
+        }
+    },
+
+    async getScore(gameId) {
+        try{
+            const gameData = await firestore.collection(collectionName).doc(gameId).get();
+            const currScore = [];
+
+            gameData.data().teams.forEach(team => {
+                const correctAnswers = team.answeredQuestions.filter(question => question.isCorrect);
+                currScore.push({ team: team.teamName, score: correctAnswers.length * 10 });
+            });
+
+            return currScore;
+        }catch(error) {
+            console.log(error);
+            return [];
         }
     }
 };

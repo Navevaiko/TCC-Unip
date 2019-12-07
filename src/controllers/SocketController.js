@@ -4,6 +4,7 @@ let currTeam = '';
 module.exports = {
     createSocket(id) {
         const game = io.of('/' + id).on('connection', socket => {
+            
             socket.on('checkPinCode', async data => {
                 const result = await GameController.checkPinCode(id, data.code);
                 
@@ -46,6 +47,10 @@ module.exports = {
                     { questionId: data.questionId, isCorrect }
                 );
                 
+                const scores = await GameController.getScore(id);
+                console.log(scores);
+                game.emit('score', { scores });
+
                 const finishedTeams = await GameController.getFinishedTeams(id);
                 const teams = await GameController.getTeams(id);
 
@@ -63,7 +68,6 @@ module.exports = {
                     
                     await GameController.finishGame(id, winner);
                     game.emit('gameOver', winner);
-                    server.close();
                 }else{
                     currTeam = teams.find(team => currTeam != team.teamName).teamName;
                     game.emit('setCurrentTeam', { team: currTeam });

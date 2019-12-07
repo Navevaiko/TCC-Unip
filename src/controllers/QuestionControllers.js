@@ -10,6 +10,7 @@ module.exports = {
                 number,
                 answers,
                 correct_answer,
+                theme
             } = req.body;
 
             const docRef = await firebaseApp.firestore().collection('Questions').doc(uuid());
@@ -18,7 +19,8 @@ module.exports = {
                 question,
                 number,
                 answers,
-                correct_answer
+                correct_answer,
+                theme
             });
 
             res.json({ sucess: true, message: 'Pergunta criada com sucesso' });
@@ -30,11 +32,13 @@ module.exports = {
 
     async getAll(req, res) {
         try {
+            const { theme } = req.body;
+
             const questionsDocs = await firebaseApp.firestore().collection('Questions').get();
             const questions = [];
 
             questionsDocs.forEach(doc => {
-                questions.push({id: doc.id, data: doc.data() });
+                if(theme == doc.data().theme) questions.push({id: doc.id, data: doc.data() });
             });
 
             res.json({ sucess: true, message: 'Perguntas listadas com sucesso', data: questions });
