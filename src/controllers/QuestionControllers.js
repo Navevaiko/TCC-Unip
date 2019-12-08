@@ -86,7 +86,7 @@ module.exports = {
     async getById(id) {
         try {
             const questionData = await firestore.collection(collectionName).doc(id).get();
-
+            
             return { id: questionData.id, data: questionData.data() };
         } catch (error) {
             console.log(error);

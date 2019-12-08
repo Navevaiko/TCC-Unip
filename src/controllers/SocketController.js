@@ -50,31 +50,40 @@ module.exports = {
                     { questionId: data.questionId, isCorrect }
                 );
                 
-                const scores = await GameController.getScore(id);
+                let color = 'azul';
+                color = (isCorrect)? 'verde': 'vermeio';
+
+                await GameController.setLed(color);
+
+                setTimeout(async () => {
+                    await GameController.setLed('azul');
+
+                    const scores = await GameController.getScore(id);
                 
-                game.emit('score', { scores, currTeam });
+                    game.emit('score', { scores, currTeam });
 
-                const finishedTeams = await GameController.getFinishedTeams(id);
-                const teams = await GameController.getTeams(id);
+                    const finishedTeams = await GameController.getFinishedTeams(id);
+                    const teams = await GameController.getTeams(id);
 
-                if(teams.length == finishedTeams.length) {
-                    let winner = 'Tie';
+                    if(teams.length == finishedTeams.length) {
+                        let winner = 'Tie';
 
-                    finishedTeams.forEach(team => { 
-                        isMax = finishedTeams.find(filterTeam => team.score < filterTeam.score) == undefined;
-                        isEqual = finishedTeams.find(filterTeam => 
-                            team.score == filterTeam.score && filterTeam.team != team.team
-                        ) == undefined;
+                        finishedTeams.forEach(team => { 
+                            isMax = finishedTeams.find(filterTeam => team.score < filterTeam.score) == undefined;
+                            isEqual = finishedTeams.find(filterTeam => 
+                                team.score == filterTeam.score && filterTeam.team != team.team
+                            ) == undefined;
+                            
+                            if(isMax && isEqual) winner = team.team;
+                        });
                         
-                        if(isMax && isEqual) winner = team.team;
-                    });
-                    
-                    await GameController.finishGame(id, winner);
-                    game.emit('gameOver', winner);
-                }else{
-                    currTeam = teams.find(team => currTeam != team.teamName).teamName;
-                    game.emit('setCurrentTeam', { team: currTeam });
-                }
+                        await GameController.finishGame(id, winner);
+                        game.emit('gameOver', winner);
+                    }else{
+                        currTeam = teams.find(team => currTeam != team.teamName).teamName;
+                        game.emit('setCurrentTeam', { team: currTeam });
+                    }
+                }, 5000);
             });
         });
         

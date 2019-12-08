@@ -1,5 +1,6 @@
 const firebaseApp = require('../config/firebase_config');
 require('firebase/firestore');
+require('firebase/database');
 
 const firestore = firebaseApp.firestore();
 const collectionName = 'Games';
@@ -150,6 +151,14 @@ module.exports = {
         }catch(error) {
             console.log(error);
             return [];
+        }
+    },
+
+    async setLed(color) {
+        try {
+            await firebaseApp.database().ref('led').set(color);
+        } catch (error) {
+            console.log(error);
         }
     }
 };

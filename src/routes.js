@@ -3,6 +3,7 @@ const QuestionController = require('./controllers/QuestionControllers');
 const ClassroomController = require('./controllers/ClassroomController');
 const GameController = require('./controllers/GameController');
 const TeacherController = require('./controllers/TeacherController');
+const ThemesController = require('./controllers/ThemeController');
 const routes = express.Router();
 
 // Rotas de perguntas
@@ -23,5 +24,8 @@ routes.get('/games', GameController.getAll);
 
 // Rota de login
 routes.post('/login', TeacherController.login)
+
+// Rota de temas
+routes.get('/themes', ThemesController.getAll)
 
 module.exports = routes;
