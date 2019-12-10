@@ -35,8 +35,8 @@ module.exports = {
 
     async getAll(req, res) {
         try {
-            const { theme } = req.body;
-
+            const { theme } = req.query;
+            
             const questionsDocs = await firestore.collection(collectionName).get();
             const questions = [];
 
